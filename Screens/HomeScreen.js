@@ -9,14 +9,15 @@ import {
   StyleSheet,
   Dimensions,
   Alert,
+  Modal,
+  Pressable,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Carousel from './Component';
-import {ScrollView} from 'react-native-gesture-handler';
-// import {products, categories, bannerImages} from '../constants/HomeData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import DynamicIcon from './DynamicIcon';
 
-const {width} = Dimensions.get('window');
+const {width, height} = Dimensions.get('window');
 
 const categories = [
   {name: 'All', icon: 'grid-outline'},
@@ -238,27 +239,31 @@ const bannerImages = [
   'https://img.freepik.com/free-photo/concept-holidays-celebration-young-man-looking-surprised-as-take-out-gift-from-shopping-bag-s_1258-155541.jpg?t=st=1744022046~exp=1744025646~hmac=4d9db341531f74d4b50ddff851ca3bf230cb05143bf3fc394f4f16ab2fadd4f4&w=1380',
 ];
 
+
 const HomeScreen = ({navigation}) => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [wishlist, setWishlist] = useState([]);
+  const [currentIcon, setCurrentIcon] = useState('default');
+  const [iconModalVisible, setIconModalVisible] = useState(false);
 
-  // Load wishlist from AsyncStorage when component mounts
+  // Load wishlist and current icon
   useEffect(() => {
-    const loadWishlist = async () => {
+    const loadData = async () => {
       try {
         const savedWishlist = await AsyncStorage.getItem('wishlist');
-        if (savedWishlist !== null) {
-          setWishlist(JSON.parse(savedWishlist));
-        }
+        if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
+        
+        const icon = await DynamicIcon.getCurrentIcon();
+        setCurrentIcon(icon);
       } catch (error) {
-        console.error('Failed to load wishlist', error);
+        console.error('Failed to load data', error);
       }
     };
-    loadWishlist();
+    loadData();
   }, []);
 
-  // Save wishlist to AsyncStorage whenever it changes
+  // Save wishlist
   useEffect(() => {
     const saveWishlist = async () => {
       try {
@@ -277,160 +282,180 @@ const HomeScreen = ({navigation}) => {
   );
 
   const toggleWishlist = productId => {
-    setWishlist(prev => {
-      if (prev.includes(productId)) {
-        return prev.filter(id => id !== productId);
-      } else {
-        return [...prev, productId];
-      }
-    });
-  };
-
-  const isInWishlist = productId => wishlist.includes(productId);
-
-  const handleWishlistPress = (productId, e) => {
-    e.stopPropagation();
-    toggleWishlist(productId);
-    Alert.alert(
-      isInWishlist(productId) ? 'Added to Wishlist' : 'Removed from Wishlist',
-      isInWishlist(productId)
-        ? 'This item has been added to your wishlist!'
-        : 'This item has been removed from your wishlist.',
-      [{text: 'OK'}],
+    setWishlist(prev => 
+      prev.includes(productId) 
+        ? prev.filter(id => id !== productId) 
+        : [...prev, productId]
     );
   };
+
+  const changeAppIcon = async (iconName) => {
+    try {
+      await DynamicIcon.changeIcon(iconName);
+      setCurrentIcon(iconName);
+      setIconModalVisible(false);
+      Alert.alert('Success', `App icon changed to ${iconName}`);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to change app icon');
+    }
+  };
+
+  const availableIcons = DynamicIcon.getAvailableIcons();
+
   return (
     <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Shop</Text>
+        <View style={styles.headerIcons}>
+          <TouchableOpacity 
+            onPress={() => setIconModalVisible(true)}
+            style={styles.iconButton}>
+            <Ionicons name="color-palette-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <Ionicons name="notifications-outline" size={24} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Wishlist', {wishlist})}
+            style={styles.wishlistButton}>
+            <Ionicons name="heart-outline" size={24} color="#fff" />
+            {wishlist.length > 0 && (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{wishlist.length}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search products..."
+          placeholderTextColor="#888"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+
+      {/* Banner Carousel */}
+      <View style={styles.carouselContainer}>
+        <Carousel
+          data={bannerImages}
+          renderItem={({item}) => (
+            <Image source={{uri: item}} style={styles.bannerImage} />
+          )}
+          sliderWidth={width}
+          itemWidth={width - 40}
+          autoplay
+          loop
+        />
+      </View>
+
+      {/* Categories */}
       <FlatList
-        ListHeaderComponent={() => (
-          <>
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>Shop</Text>
-              <View style={styles.headerIcons}>
-                <TouchableOpacity onPress={() => alert('Notifications Clicked!')}>
-                  <Ionicons name="notifications-outline" size={28} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Wishlist', {wishlist})}
-                  style={styles.wishlist}>
-                  <Ionicons name="heart-outline" size={28} color="white" />
-                  {wishlist.length > 0 && (
-                    <View style={styles.wishlistBadge}>
-                      <Text style={styles.wishlistBadgeText}>{wishlist.length}</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <View style={styles.search}>
-                <Ionicons
-                  name="search"
-                  size={26}
-                  color="#666"
-                  style={styles.searchIcon}
-                />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search Products..."
-                  value={search}
-                  onChangeText={text => setSearch(text)}
-                />
-              </View>
-            </View>
-            {/* Banner Carousel */}
-            <View style={styles.carouselContainer}>
-              <Carousel
-                width={width}
-                height={200}
-                autoplay
-                loop
-                showsControls={false}
-                scrollAnimationDuration={1000}
-                data={bannerImages}
-                renderItem={({item}) => (
-                  <View style={styles.item}>
-                    <Image source={{uri: item}} style={styles.carouselImage} />
-                  </View>
-                )}
-              />
-            </View>
-            {/* Categories */}
-            <View style={styles.categoryContainer}>
-              <FlatList
-                data={categories}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={item => item.name}
-                renderItem={({item}) => {
-                  const isActive = selectedCategory === item.name;
-                  return (
-                    <TouchableOpacity
-                      style={styles.categoryButton}
-                      onPress={() => setSelectedCategory(item.name)}>
-                      <View
-                        style={[
-                          styles.iconContainer,
-                          isActive && styles.activeIconContainer,
-                        ]}>
-                        <Ionicons
-                          name={item.icon}
-                          size={26}
-                          color={isActive ? '#fff' : '#0A5EB0'}
-                        />
-                      </View>
-                      <Text
-                        style={[
-                          styles.categoryText,
-                          isActive && styles.activeCategoryText,
-                        ]}>
-                        {item.name}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                }}
-              />
-            </View>
-          </>
-        )}
-        data={filteredProducts}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
+        horizontal
+        data={categories}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoriesContainer}
         renderItem={({item}) => (
           <TouchableOpacity
-            style={styles.card}
+            style={[
+              styles.categoryButton,
+              selectedCategory === item.name && styles.selectedCategory
+            ]}
+            onPress={() => setSelectedCategory(item.name)}>
+            <Ionicons 
+              name={item.icon} 
+              size={24} 
+              color={selectedCategory === item.name ? '#fff' : '#0A5EB0'} 
+            />
+            <Text style={[
+              styles.categoryText,
+              selectedCategory === item.name && styles.selectedCategoryText
+            ]}>
+              {item.name}
+            </Text>
+          </TouchableOpacity>
+        )}
+        keyExtractor={item => item.name}
+      />
+
+      {/* Products Grid */}
+      <FlatList
+        data={filteredProducts}
+        numColumns={2}
+        columnWrapperStyle={styles.productsRow}
+        contentContainerStyle={styles.productsContainer}
+        renderItem={({item}) => (
+          <TouchableOpacity 
+            style={styles.productCard}
             onPress={() => navigation.navigate('ProductDetails', {product: item})}>
-            <View style={styles.imageContainer}>
+            <View style={styles.productImageContainer}>
               <Image source={{uri: item.image}} style={styles.productImage} />
-              <TouchableOpacity
-                style={styles.wishlistIcon}
-                onPress={e => handleWishlistPress(item.id, e)}>
-                <Ionicons
-                  name={isInWishlist(item.id) ? 'heart' : 'heart-outline'}
-                  size={20}
-                  color={isInWishlist(item.id) ? '#ff0000' : '#999'}
+              <TouchableOpacity 
+                style={styles.heartIcon}
+                onPress={() => toggleWishlist(item.id)}>
+                <Ionicons 
+                  name={wishlist.includes(item.id) ? "heart" : "heart-outline"} 
+                  size={20} 
+                  color={wishlist.includes(item.id) ? "#ff0000" : "#fff"} 
                 />
               </TouchableOpacity>
             </View>
             <View style={styles.productInfo}>
-              <Text style={styles.name} numberOfLines={1}>
-                {item.name}
-              </Text>
+              <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
               <View style={styles.ratingContainer}>
                 <Ionicons name="star" size={14} color="#FFD700" />
                 <Text style={styles.ratingText}>{item.rating}</Text>
                 <Text style={styles.reviewsText}>({item.reviews})</Text>
               </View>
-              <View style={styles.priceRow}>
-                <Text style={styles.price}>{item.discountedPrice}</Text>
+              <View style={styles.priceContainer}>
+                <Text style={styles.discountedPrice}>{item.discountedPrice}</Text>
                 <Text style={styles.originalPrice}>{item.originalPrice}</Text>
               </View>
             </View>
           </TouchableOpacity>
         )}
+        keyExtractor={item => item.id}
       />
+
+      {/* Icon Changer Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={iconModalVisible}
+        onRequestClose={() => setIconModalVisible(false)}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Change App Icon</Text>
+            <Text style={styles.currentIcon}>Current: {currentIcon}</Text>
+            
+            {Object.entries(availableIcons).map(([key, value]) => (
+              <Pressable
+                key={key}
+                style={[
+                  styles.iconOption,
+                  currentIcon === value && styles.selectedIconOption
+                ]}
+                onPress={() => changeAppIcon(value)}>
+                <Text style={styles.iconOptionText}>
+                  {key.replace(/([A-Z])/g, ' $1').trim()}
+                </Text>
+              </Pressable>
+            ))}
+            
+            <Pressable
+              style={styles.cancelButton}
+              onPress={() => setIconModalVisible(false)}>
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -444,141 +469,133 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0A5EB0',
-    paddingVertical: 30,
     paddingHorizontal: 20,
+    paddingVertical: 15,
+    backgroundColor: '#0A5EB0',
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     elevation: 5,
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowOffset: {width: 0, height: 2},
     shadowRadius: 4,
   },
   headerTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
-    letterSpacing: 1,
+    letterSpacing: 0.5,
   },
   headerIcons: {
     flexDirection: 'row',
-    gap: 20,
     alignItems: 'center',
+    gap: 15,
   },
-  wishlistBadge: {
+  iconButton: {
+    padding: 5,
+  },
+  wishlistButton: {
+    position: 'relative',
+    padding: 5,
+  },
+  badge: {
     position: 'absolute',
-    right: -5,
     top: -5,
+    right: -5,
     backgroundColor: '#ff0000',
     borderRadius: 10,
-    width: 20,
-    height: 20,
+    width: 18,
+    height: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  wishlistBadgeText: {
+  badgeText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: 'bold',
   },
   searchContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    backgroundColor: '#F8F8F8',
-  },
-  search: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderRadius: 30,
     alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 25,
     paddingHorizontal: 15,
-    paddingVertical: 8,
+    marginHorizontal: 20,
+    marginVertical: 15,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 2,
+  },
+  searchIcon: {
+    marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    marginLeft: 10,
+    height: 45,
     color: '#333',
+    fontSize: 16,
   },
   carouselContainer: {
-    marginBottom: 10,
+    height: 180,
+    marginBottom: 15,
   },
-  item: {
+  bannerImage: {
+    width: width - 40,
+    height: 180,
     borderRadius: 15,
-    overflow: 'hidden',
-    marginHorizontal: 5,
+    marginHorizontal: 20,
   },
-  carouselImage: {
-    width: width,
-    height: 200,
-    borderRadius: 15,
-    resizeMode: 'cover',
-  },
-  categoryContainer: {
+  categoriesContainer: {
     paddingHorizontal: 15,
     paddingBottom: 10,
-    marginTop: 10,
   },
   categoryButton: {
     alignItems: 'center',
-    marginRight: 15,
-    width: 70,
-  },
-  iconContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
     backgroundColor: '#fff',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#0A5EB0',
-    marginBottom: 5,
+    borderRadius: 25,
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    marginRight: 10,
+    flexDirection: 'row',
     elevation: 2,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: {width: 0, height: 2},
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
-  activeIconContainer: {
+  selectedCategory: {
     backgroundColor: '#0A5EB0',
   },
   categoryText: {
-    fontSize: 13,
+    marginLeft: 8,
+    fontSize: 14,
     color: '#333',
-    textAlign: 'center',
   },
-  activeCategoryText: {
-    color: '#0A5EB0',
-    fontWeight: 'bold',
+  selectedCategoryText: {
+    color: '#fff',
   },
-  productListContainer: {
-    paddingHorizontal: 10,
+  productsContainer: {
+    paddingHorizontal: 15,
     paddingBottom: 20,
   },
-  row: {
+  productsRow: {
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 15,
   },
-  card: {
+  productCard: {
+    width: '48%',
     backgroundColor: '#fff',
     borderRadius: 12,
-    width: '48%',
-    marginBottom: 15,
     overflow: 'hidden',
     elevation: 3,
     shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowOffset: {width: 0, height: 2},
     shadowRadius: 4,
   },
-  imageContainer: {
+  productImageContainer: {
     position: 'relative',
   },
   productImage: {
@@ -586,18 +603,18 @@ const styles = StyleSheet.create({
     height: 150,
     resizeMode: 'cover',
   },
-  wishlistIcon: {
+  heartIcon: {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.2)',
     borderRadius: 20,
     padding: 5,
   },
   productInfo: {
-    padding: 10,
+    padding: 12,
   },
-  name: {
+  productName: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
@@ -618,21 +635,74 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#888',
   },
-  priceRow: {
+  priceContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 3,
   },
-  price: {
+  discountedPrice: {
     fontSize: 15,
-    color: '#0A5EB0',
     fontWeight: 'bold',
+    color: '#0A5EB0',
   },
   originalPrice: {
     fontSize: 12,
     color: '#888',
     textDecorationLine: 'line-through',
     marginLeft: 5,
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContainer: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0A5EB0',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  currentIcon: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  iconOption: {
+    backgroundColor: '#f5f5f5',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 8,
+  },
+  selectedIconOption: {
+    backgroundColor: '#e1f0ff',
+    borderWidth: 1,
+    borderColor: '#0A5EB0',
+  },
+  iconOptionText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    textTransform: 'capitalize',
+  },
+  cancelButton: {
+    backgroundColor: '#0A5EB0',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 10,
+  },
+  cancelButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 
