@@ -13,8 +13,6 @@
       android:theme="@style/AppTheme"
 
       android:supportsRtl="true">
-<!-- Remove or properly define this activity-alias -->
-<!-- <activity-alias android:name=".MainActivity"/> -->
 <activity-alias
 
          android:name="com.rndynamicicon.MainActivityic_launcher"
@@ -65,7 +63,7 @@
 </activity-alias>
 <activity-alias
 
-       android:name="com.rndynamicicon.MainActivityic_launcher_logo_4"
+       android:name=".MainActivityic_launcher_logo_4"
 
        android:enabled="false"
 
@@ -81,7 +79,7 @@
 </activity-alias>
 <activity-alias
 
-       android:name="com.rndynamicicon.MainActivityic_launcher_logo_5"
+       android:name=".MainActivityic_launcher_logo_5"
 
        android:enabled="false"
 

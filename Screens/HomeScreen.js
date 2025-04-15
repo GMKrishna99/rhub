@@ -15,10 +15,6 @@ import Carousel from './Component';
 import {ScrollView} from 'react-native-gesture-handler';
 // import {products, categories, bannerImages} from '../constants/HomeData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {changeIcon, getIcon} from 'react-native-change-icon';
-
-changeIcon('ic_launcher');
-getIcon();
 
 const {width} = Dimensions.get('window');
 
@@ -305,147 +301,136 @@ const HomeScreen = ({navigation}) => {
   };
   return (
     <View style={styles.container}>
-      <ScrollView>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Shop</Text>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => alert('Notifications Clicked!')}>
-              <Ionicons name="notifications-outline" size={28} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Wishlist', {wishlist})}
-              style={styles.wishlist}>
-              <Ionicons name="heart-outline" size={28} color="white" />
-              {wishlist.length > 0 && (
-                <View style={styles.wishlistBadge}>
-                  <Text style={styles.wishlistBadgeText}>
-                    {wishlist.length}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <View style={styles.search}>
-            <Ionicons
-              name="search"
-              size={26}
-              color="#666"
-              style={styles.searchIcon}
-            />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search Products..."
-              value={search}
-              onChangeText={text => setSearch(text)}
-            />
-          </View>
-        </View>
-        {/* Banner Carousel */}
-        <View style={styles.carouselContainer}>
-          <Carousel
-            width={width}
-            height={200}
-            autoplay
-            loop
-            showsControls={false}
-            scrollAnimationDuration={1000}
-            data={bannerImages}
-            renderItem={({item}) => (
-              <View style={styles.item}>
-                <Image source={{uri: item}} style={styles.carouselImage} />
-              </View>
-            )}
-          />
-        </View>
-        {/* Categories */}
-        <View style={styles.categoryContainer}>
-          <FlatList
-            data={categories}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={item => item.name}
-            renderItem={({item}) => {
-              const isActive = selectedCategory === item.name;
-              return (
-                <TouchableOpacity
-                  style={styles.categoryButton}
-                  onPress={() => setSelectedCategory(item.name)}>
-                  <View
-                    style={[
-                      styles.iconContainer,
-                      isActive && styles.activeIconContainer,
-                    ]}>
-                    <Ionicons
-                      name={item.icon}
-                      size={26}
-                      color={isActive ? '#fff' : '#0A5EB0'}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.categoryText,
-                      isActive && styles.activeCategoryText,
-                    ]}>
-                    {item.name}
-                  </Text>
+      <FlatList
+        ListHeaderComponent={() => (
+          <>
+            <View style={styles.header}>
+              <Text style={styles.headerTitle}>Shop</Text>
+              <View style={styles.headerIcons}>
+                <TouchableOpacity onPress={() => alert('Notifications Clicked!')}>
+                  <Ionicons name="notifications-outline" size={28} color="#fff" />
                 </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
-        {/* Product List */}
-        <View style={styles.productListContainer}>
-          <FlatList
-            data={filteredProducts}
-            keyExtractor={item => item.id}
-            scrollEnabled={false}
-            numColumns={2}
-            columnWrapperStyle={styles.row}
-            renderItem={({item}) => (
+                <TouchableOpacity
+                  onPress={() => navigation.navigate('Wishlist', {wishlist})}
+                  style={styles.wishlist}>
+                  <Ionicons name="heart-outline" size={28} color="white" />
+                  {wishlist.length > 0 && (
+                    <View style={styles.wishlistBadge}>
+                      <Text style={styles.wishlistBadgeText}>{wishlist.length}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+            {/* Search Bar */}
+            <View style={styles.searchContainer}>
+              <View style={styles.search}>
+                <Ionicons
+                  name="search"
+                  size={26}
+                  color="#666"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search Products..."
+                  value={search}
+                  onChangeText={text => setSearch(text)}
+                />
+              </View>
+            </View>
+            {/* Banner Carousel */}
+            <View style={styles.carouselContainer}>
+              <Carousel
+                width={width}
+                height={200}
+                autoplay
+                loop
+                showsControls={false}
+                scrollAnimationDuration={1000}
+                data={bannerImages}
+                renderItem={({item}) => (
+                  <View style={styles.item}>
+                    <Image source={{uri: item}} style={styles.carouselImage} />
+                  </View>
+                )}
+              />
+            </View>
+            {/* Categories */}
+            <View style={styles.categoryContainer}>
+              <FlatList
+                data={categories}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={item => item.name}
+                renderItem={({item}) => {
+                  const isActive = selectedCategory === item.name;
+                  return (
+                    <TouchableOpacity
+                      style={styles.categoryButton}
+                      onPress={() => setSelectedCategory(item.name)}>
+                      <View
+                        style={[
+                          styles.iconContainer,
+                          isActive && styles.activeIconContainer,
+                        ]}>
+                        <Ionicons
+                          name={item.icon}
+                          size={26}
+                          color={isActive ? '#fff' : '#0A5EB0'}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.categoryText,
+                          isActive && styles.activeCategoryText,
+                        ]}>
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                }}
+              />
+            </View>
+          </>
+        )}
+        data={filteredProducts}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        renderItem={({item}) => (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('ProductDetails', {product: item})}>
+            <View style={styles.imageContainer}>
+              <Image source={{uri: item.image}} style={styles.productImage} />
               <TouchableOpacity
-                style={styles.card}
-                onPress={() =>
-                  navigation.navigate('ProductDetails', {product: item})
-                }>
-                <View style={styles.imageContainer}>
-                  <Image
-                    source={{uri: item.image}}
-                    style={styles.productImage}
-                  />
-                  <TouchableOpacity
-                    style={styles.wishlistIcon}
-                    onPress={e => handleWishlistPress(item.id, e)}>
-                    <Ionicons
-                      name={isInWishlist(item.id) ? 'heart' : 'heart-outline'}
-                      size={20}
-                      color={isInWishlist(item.id) ? '#ff0000' : '#999'}
-                    />
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.productInfo}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {item.name}
-                  </Text>
-                  <View style={styles.ratingContainer}>
-                    <Ionicons name="star" size={14} color="#FFD700" />
-                    <Text style={styles.ratingText}>{item.rating}</Text>
-                    <Text style={styles.reviewsText}>({item.reviews})</Text>
-                  </View>
-                  <View style={styles.priceRow}>
-                    <Text style={styles.price}>{item.discountedPrice}</Text>
-                    <Text style={styles.originalPrice}>
-                      {item.originalPrice}
-                    </Text>
-                  </View>
-                </View>
+                style={styles.wishlistIcon}
+                onPress={e => handleWishlistPress(item.id, e)}>
+                <Ionicons
+                  name={isInWishlist(item.id) ? 'heart' : 'heart-outline'}
+                  size={20}
+                  color={isInWishlist(item.id) ? '#ff0000' : '#999'}
+                />
               </TouchableOpacity>
-            )}
-          />
-        </View>
-      </ScrollView>
+            </View>
+            <View style={styles.productInfo}>
+              <Text style={styles.name} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <View style={styles.ratingContainer}>
+                <Ionicons name="star" size={14} color="#FFD700" />
+                <Text style={styles.ratingText}>{item.rating}</Text>
+                <Text style={styles.reviewsText}>({item.reviews})</Text>
+              </View>
+              <View style={styles.priceRow}>
+                <Text style={styles.price}>{item.discountedPrice}</Text>
+                <Text style={styles.originalPrice}>{item.originalPrice}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 };
