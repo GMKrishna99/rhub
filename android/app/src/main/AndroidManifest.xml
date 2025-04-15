@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+package = "com.rithikahub">
 <uses-permission android:name="android.permission.INTERNET" />
 <application
 
@@ -13,9 +14,11 @@
       android:theme="@style/AppTheme"
 
       android:supportsRtl="true">
+<!-- Remove or properly define this activity-alias -->
+<!-- <activity-alias android:name=".MainActivity"/> -->
 <activity-alias
 
-         android:name="com.rndynamicicon.MainActivityic_launcher"
+         android:name=".MainActivityic_launcher"
 
          android:enabled="false"
 
@@ -31,7 +34,7 @@
 </activity-alias>
 <activity-alias
 
-       android:name="com.rndynamicicon.MainActivityic_launcher_logo_2"
+       android:name=".MainActivityic_launcher_logo_2"
 
        android:enabled="false"
 
@@ -47,7 +50,7 @@
 </activity-alias>
 <activity-alias
 
-       android:name="com.rndynamicicon.MainActivityic_launcher_logo_3"
+       android:name=".MainActivityic_launcher_logo_3"
 
        android:enabled="false"
 
@@ -95,7 +98,7 @@
 </activity-alias>
 <activity-alias
 
-       android:name="com.rndynamicicon.MainActivityic_launcher_logo_6"
+       android:name=".MainActivityic_launcher_logo_6"
 
        android:enabled="false"
 
