@@ -1,134 +1,336 @@
-import React, {useState} from 'react';
-import {View, Text, Image, TouchableOpacity, StyleSheet} from 'react-native';
-import {useCart} from './CartContext';
-// import { TextInput } from 'react-native-gesture-handler';
-import {FontAwesome} from 'react-native-vector-icons'; // Import FontAwesome for stars
+import React, { useState, useEffect } from 'react';
+import { 
+  View, 
+  Text, 
+  Image, 
+  ScrollView, 
+  StyleSheet, 
+  TouchableOpacity,
+  Alert,
+  Dimensions
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useCart } from './CartContext'; // Adjust the import path as needed
 
-const ProductDetailsScreen = ({route, navigation}) => {
-  const {product} = route.params;
-  const {addToCart, addToWishlist} = useCart(); // Extract functions from the cart context
-  const [rating, setRating] = useState(0); // State for user rating
+const { width } = Dimensions.get('window');
+
+const ProductDetails = ({ route }) => {
+  const { product } = route.params;
+  const [quantity, setQuantity] = useState(1);
+  const { 
+    cart, 
+    wishlist, 
+    addToCart, 
+    addToWishlist, 
+    removeFromWishlist, 
+    removeFromCart 
+  } = useCart();
+
+  // Check if product is in wishlist
+  const isInWishlist = wishlist.some(item => item.id === product.id);
+  // Check if product is in cart
+  const isInCart = cart.some(item => item.id === product.id);
+
+  const handleAddToCart = () => {
+    addToCart({...product, quantity});
+    Alert.alert(
+      'Added to Cart',
+      `${quantity} ${product.name} has been added to your cart!`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleRemoveFromCart = () => {
+    removeFromCart(product.id);
+    Alert.alert(
+      'Removed from Cart',
+      `${product.name} has been removed from your cart!`,
+      [{ text: 'OK' }]
+    );
+  };
+
+  const toggleWishlist = () => {
+    if (isInWishlist) {
+      removeFromWishlist(product.id);
+      Alert.alert(
+        'Removed from Wishlist',
+        `${product.name} has been removed from your wishlist!`,
+        [{ text: 'OK' }]
+      );
+    } else {
+      addToWishlist(product);
+      Alert.alert(
+        'Added to Wishlist',
+        `${product.name} has been added to your wishlist!`,
+        [{ text: 'OK' }]
+      );
+    }
+  };
+
+  const incrementQuantity = () => setQuantity(prev => prev + 1);
+  const decrementQuantity = () => setQuantity(prev => (prev > 1 ? prev - 1 : 1));
 
   return (
-    <View style={styles.container}>
-      <Image source={{uri: product.image}} style={styles.image} />
-      <Text style={styles.name}>{product.name}</Text>
-      <Text style={styles.price}>{product.price}</Text>
-
-      {/* Star Rating Section */}
-      <View style={styles.ratingContainer}>
-        <Text style={styles.ratingText}>Rate this product:</Text>
-        <View style={styles.starRow}>
-          {[1, 2, 3, 4, 5].map(star => (
-            <TouchableOpacity key={star} onPress={() => setRating(star)}>
-              <FontAwesome
-                name={star <= rating ? 'star' : 'star-o'} // Filled star for selected, outlined for unselected
-                size={30}
-                color="#FFD700"
-                style={styles.star}
-              />
-            </TouchableOpacity>
-          ))}
+    <ScrollView style={styles.container}>
+      <Image source={{ uri: product.image }} style={styles.productImage} />
+      <View style={styles.detailsContainer}>
+        <Text style={styles.productName}>{product.name}</Text>
+        
+        <View style={styles.priceContainer}>
+          <Text style={styles.discountedPrice}>{product.discountedPrice}</Text>
+          <Text style={styles.originalPrice}>{product.originalPrice}</Text>
         </View>
+        
+        <View style={styles.ratingContainer}>
+          <Ionicons name="star" size={20} color="#FFD700" />
+          <Text style={styles.ratingText}>{product.rating}</Text>
+          <Text style={styles.reviewsText}>({product.reviews} reviews)</Text>
+        </View>
+        
+        <Text style={styles.description}>{product.description}</Text>
+        
+        {/* Quantity Selector */}
+        <View style={styles.quantityContainer}>
+          <Text style={styles.quantityLabel}>Quantity:</Text>
+          <View style={styles.quantityControls}>
+            <TouchableOpacity onPress={decrementQuantity} style={styles.quantityButton}>
+              <Ionicons name="remove" size={20} color="#0A5EB0" />
+            </TouchableOpacity>
+            <Text style={styles.quantityText}>{quantity}</Text>
+            <TouchableOpacity onPress={incrementQuantity} style={styles.quantityButton}>
+              <Ionicons name="add" size={20} color="#0A5EB0" />
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        {/* Action Buttons */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            onPress={toggleWishlist}
+            style={[
+              styles.actionButton,
+              styles.wishlistButton,
+              isInWishlist && styles.activeWishlistButton
+            ]}
+          >
+            <Ionicons 
+              name={isInWishlist ? "heart" : "heart-outline"} 
+              size={20} 
+              color={isInWishlist ? "#fff" : "#0A5EB0"} 
+            />
+            <Text style={[
+              styles.buttonText,
+              isInWishlist && styles.activeButtonText
+            ]}>
+              {isInWishlist ? 'In Wishlist' : 'Add to Wishlist'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            onPress={isInCart ? handleRemoveFromCart : handleAddToCart}
+            style={[
+              styles.actionButton,
+              styles.cartButton,
+              isInCart && styles.activeCartButton
+            ]}
+          >
+            <Ionicons 
+              name={isInCart ? "cart" : "cart-outline"} 
+              size={20} 
+              color={isInCart ? "#fff" : "#0A5EB0"} 
+            />
+            <Text style={[
+              styles.buttonText,
+              isInCart && styles.activeButtonText
+            ]}>
+              {isInCart ? 'In Cart' : 'Add to Cart'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        
+        {/* Reviews Section */}
+        <Text style={styles.sectionTitle}>Reviews</Text>
+        {product.reviewsData.map(review => (
+          <View key={review.id} style={styles.reviewContainer}>
+            <Text style={styles.reviewUser}>{review.user}</Text>
+            <View style={styles.reviewRating}>
+              <Ionicons name="star" size={16} color="#FFD700" />
+              <Text style={styles.reviewRatingText}>{review.rating}</Text>
+              <Text style={styles.reviewDate}>{review.date}</Text>
+            </View>
+            <Text style={styles.reviewComment}>{review.comment}</Text>
+          </View>
+        ))}
       </View>
-
-      <View style={styles.productButton}>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            addToCart(product);
-            alert('Added to Cart!');
-          }}>
-          <Text style={styles.buttonText}>Add to Cart</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => {
-            addToWishlist(product);
-            alert('Added to Wishlist!');
-          }}>
-          <Text style={styles.buttonText}>Add to Wishlist</Text>
-        </TouchableOpacity>
-      </View>
-
-      <Text style={styles.descriptionTitle}>Description</Text>
-      <Text style={styles.descriptionText}>
-        The thrill of discovery, a shopper's delight, Each item a treasure,
-        shining so bright. From bustling markets to online spree, A happy hunt,
-        just for you and me. Let the shopping adventure fill you with glee!
-      </Text>
-    </View>
+    </ScrollView>
+    
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: '#fff',
   },
-  image: {
-    width: 200,
-    height: 200,
-    borderRadius: 10,
-    alignSelf: 'center',
+  productImage: {
+    width: '100%',
+    height: 300,
+    resizeMode: 'cover',
   },
-  name: {
-    fontSize: 20,
+  detailsContainer: {
+    padding: 20,
+  },
+  productName: {
+    fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 10,
-    textAlign: 'center',
+    marginBottom: 10,
+    color: '#333',
   },
-  price: {
-    fontSize: 18,
-    color: '#2C5F2D',
-    marginVertical: 5,
-    textAlign: 'center',
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  discountedPrice: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#0A5EB0',
+  },
+  originalPrice: {
+    fontSize: 16,
+    color: '#888',
+    textDecorationLine: 'line-through',
+    marginLeft: 10,
   },
   ratingContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    marginBottom: 15,
   },
   ratingText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
+    marginLeft: 5,
+    marginRight: 10,
+    color: '#333',
   },
-  starRow: {
+  reviewsText: {
+    fontSize: 14,
+    color: '#888',
+  },
+  description: {
+    fontSize: 16,
+    color: '#555',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  quantityContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginVertical: 15,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
   },
-  star: {
-    marginHorizontal: 5,
+  quantityLabel: {
+    fontSize: 16,
+    color: '#333',
   },
-  button: {
-    backgroundColor: '#0A5EB0',
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-    marginBottom: 7,
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
+  quantityButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+  },
+  quantityText: {
+    marginHorizontal: 15,
+    fontSize: 16,
     fontWeight: 'bold',
+    color: '#333',
   },
-  productButton: {
+  buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignSelf: 'center',
-    width: '80%',
-    marginTop: 10,
-    marginBottom: 7,
+    marginVertical: 15,
   },
-  descriptionTitle: {
+  actionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    width: '48%',
+    borderWidth: 1,
+  },
+  wishlistButton: {
+    borderColor: '#0A5EB0',
+    backgroundColor: '#fff',
+  },
+  cartButton: {
+    borderColor: '#0A5EB0',
+    backgroundColor: '#fff',
+  },
+  activeWishlistButton: {
+    backgroundColor: '#0A5EB0',
+    borderColor: '#0A5EB0',
+  },
+  activeCartButton: {
+    backgroundColor: '#0A5EB0',
+    borderColor: '#0A5EB0',
+  },
+  buttonText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#0A5EB0',
+  },
+  activeButtonText: {
+    color: '#fff',
+  },
+  sectionTitle: {
     fontSize: 18,
-    marginBottom: 10,
     fontWeight: 'bold',
+    marginBottom: 15,
+    color: '#333',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 5,
   },
-  descriptionText: {
+  reviewContainer: {
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f5f5f5',
+  },
+  reviewUser: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 5,
+    color: '#333',
+  },
+  reviewRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  reviewRatingText: {
     fontSize: 14,
-    textAlign: 'left',
+    marginLeft: 5,
+    marginRight: 10,
+    color: '#333',
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: '#888',
+  },
+  reviewComment: {
+    fontSize: 14,
+    color: '#555',
+    lineHeight: 20,
   },
 });
 
-export default ProductDetailsScreen;
+export default ProductDetails;

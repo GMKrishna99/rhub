@@ -1,60 +1,190 @@
 import React from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { useCart } from '../Screens/CartContext';
-import { Ionicons } from 'react-native-vector-icons';
+import { 
+  View, 
+  Text, 
+  FlatList, 
+  Image, 
+  TouchableOpacity, 
+  StyleSheet,
+  Dimensions,
+  Alert
+} from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useCart } from './CartContext'; // Adjust import path as needed
 
-const WishlistScreen = () => {
-  const { wishlist, removeFromWishlist } = useCart(); // Get wishlist & remove function
+const { width } = Dimensions.get('window');
+
+const WishlistScreen = ({ navigation }) => {
+  const { wishlist, removeFromWishlist } = useCart();
+
+  const handleRemoveItem = (productId, e) => {
+    e.stopPropagation(); // Prevent navigation when clicking remove button
+    Alert.alert(
+      'Remove Item',
+      'Are you sure you want to remove this item from your wishlist?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Remove',
+          onPress: () => removeFromWishlist(productId),
+          style: 'destructive',
+        },
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Wishlist</Text>
-
-      {wishlist.length === 0 ? (
-        <Text style={styles.empty}>Your wishlist is empty.</Text>
-      ) : (
+      {wishlist.length > 0 ? (
         <FlatList
           data={wishlist}
-          keyExtractor={(item) => item.id}
+          keyExtractor={item => item.id}
           renderItem={({ item }) => (
-            <View style={styles.item}>
-              <Image source={{ uri: item.image }} style={styles.image} />
-              <View style={styles.textContainer}>
-                <Text style={styles.name}>{item.name}</Text>
-                <Text style={styles.price}>{item.price}</Text>
+            <TouchableOpacity
+              style={styles.itemContainer}
+              onPress={() => navigation.navigate('ProductDetails', { product: item })}
+            >
+              <View style={styles.item}>
+                <Image source={{ uri: item.image }} style={styles.image} />
+                <View style={styles.infoContainer}>
+                  <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.discountedPrice}>{item.discountedPrice}</Text>
+                    <Text style={styles.originalPrice}>{item.originalPrice}</Text>
+                  </View>
+                  <View style={styles.ratingContainer}>
+                    <Ionicons name="star" size={14} color="#FFD700" />
+                    <Text style={styles.ratingText}>{item.rating}</Text>
+                    <Text style={styles.reviewsText}>({item.reviews})</Text>
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  style={styles.removeButton}
+                  onPress={(e) => handleRemoveItem(item.id, e)}
+                >
+                  <Ionicons name="close" size={24} color="#ff0000" />
+                </TouchableOpacity>
               </View>
-
-              {/* Delete Button with Trash Icon */}
-              <TouchableOpacity onPress={() => removeFromWishlist(item.id)}>
-                <Ionicons name="trash" size={24} color="#D9534F" style={styles.icon} />
-              </TouchableOpacity>
-            </View>
+            </TouchableOpacity>
           )}
+          contentContainerStyle={styles.listContent}
         />
+      ) : (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="heart-dislike-outline" size={60} color="#ccc" />
+          <Text style={styles.emptyText}>Your wishlist is empty</Text>
+          <TouchableOpacity 
+            style={styles.shopButton}
+            onPress={() => navigation.navigate('Home')}
+          >
+            <Text style={styles.shopButtonText}>Browse Products</Text>
+          </TouchableOpacity>
+        </View>
       )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
-  empty: { fontSize: 16, textAlign: 'center', marginTop: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f8f8',
+  },
+  listContent: {
+    padding: 15,
+  },
+  itemContainer: {
+    marginBottom: 15,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
   item: {
     flexDirection: 'row',
-    backgroundColor: '#f9f9f9',
-    padding: 12,
-    borderRadius: 10,
-    marginBottom: 10,
+    padding: 15,
     alignItems: 'center',
-    elevation: 3, // Shadow for better UI
   },
-  image: { width: 80, height: 80, borderRadius: 10, marginRight: 10 },
-  textContainer: { flex: 1 },
-  name: { fontSize: 16, fontWeight: 'bold' },
-  price: { fontSize: 14, color: '#2C5F2D', marginVertical: 5 },
-  icon: { padding: 8 }, // Spacing for delete icon
+  image: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 15,
+  },
+  infoContainer: {
+    flex: 1,
+  },
+  name: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 5,
+    color: '#333',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  discountedPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#0A5EB0',
+    marginRight: 10,
+  },
+  originalPrice: {
+    fontSize: 14,
+    color: '#888',
+    textDecorationLine: 'line-through',
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingText: {
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 5,
+    marginRight: 5,
+  },
+  reviewsText: {
+    fontSize: 12,
+    color: '#888',
+  },
+  removeButton: {
+    padding: 8,
+    marginLeft: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    fontSize: 18,
+    color: '#666',
+    marginTop: 15,
+    marginBottom: 30,
+  },
+  shopButton: {
+    backgroundColor: '#0A5EB0',
+    borderRadius: 8,
+    padding: 15,
+    width: '80%',
+    alignItems: 'center',
+  },
+  shopButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default WishlistScreen;
-
