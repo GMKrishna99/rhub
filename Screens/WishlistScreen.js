@@ -1,21 +1,21 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  FlatList, 
-  Image, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
   StyleSheet,
   Dimensions,
-  Alert
+  Alert,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import { useCart } from './CartContext'; // Adjust import path as needed
+import {useCart} from './CartContext'; // Adjust import path as needed
 
-const { width } = Dimensions.get('window');
+const {width} = Dimensions.get('window');
 
-const WishlistScreen = ({ navigation }) => {
-  const { wishlist, removeFromWishlist } = useCart();
+const WishlistScreen = ({navigation}) => {
+  const {wishlist, removeFromWishlist} = useCart();
 
   const handleRemoveItem = (productId, e) => {
     e.stopPropagation(); // Prevent navigation when clicking remove button
@@ -32,7 +32,7 @@ const WishlistScreen = ({ navigation }) => {
           onPress: () => removeFromWishlist(productId),
           style: 'destructive',
         },
-      ]
+      ],
     );
   };
 
@@ -42,18 +42,25 @@ const WishlistScreen = ({ navigation }) => {
         <FlatList
           data={wishlist}
           keyExtractor={item => item.id}
-          renderItem={({ item }) => (
+          renderItem={({item}) => (
             <TouchableOpacity
               style={styles.itemContainer}
-              onPress={() => navigation.navigate('ProductDetails', { product: item })}
-            >
+              onPress={() =>
+                navigation.navigate('ProductDetails', {product: item})
+              }>
               <View style={styles.item}>
-                <Image source={{ uri: item.image }} style={styles.image} />
+                <Image source={{uri: item.image}} style={styles.image} />
                 <View style={styles.infoContainer}>
-                  <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.name} numberOfLines={1}>
+                    {item.name}
+                  </Text>
                   <View style={styles.priceContainer}>
-                    <Text style={styles.discountedPrice}>{item.discountedPrice}</Text>
-                    <Text style={styles.originalPrice}>{item.originalPrice}</Text>
+                    <Text style={styles.discountedPrice}>
+                      {item.discountedPrice}
+                    </Text>
+                    <Text style={styles.originalPrice}>
+                      {item.originalPrice}
+                    </Text>
                   </View>
                   <View style={styles.ratingContainer}>
                     <Ionicons name="star" size={14} color="#FFD700" />
@@ -61,10 +68,9 @@ const WishlistScreen = ({ navigation }) => {
                     <Text style={styles.reviewsText}>({item.reviews})</Text>
                   </View>
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.removeButton}
-                  onPress={(e) => handleRemoveItem(item.id, e)}
-                >
+                  onPress={e => handleRemoveItem(item.id, e)}>
                   <Ionicons name="close" size={24} color="#ff0000" />
                 </TouchableOpacity>
               </View>
@@ -76,10 +82,9 @@ const WishlistScreen = ({ navigation }) => {
         <View style={styles.emptyContainer}>
           <Ionicons name="heart-dislike-outline" size={60} color="#ccc" />
           <Text style={styles.emptyText}>Your wishlist is empty</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.shopButton}
-            onPress={() => navigation.navigate('Home')}
-          >
+            onPress={() => navigation.navigate('Home')}>
             <Text style={styles.shopButtonText}>Browse Products</Text>
           </TouchableOpacity>
         </View>
@@ -103,7 +108,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },

@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    width: width,
+    width: width - 40,
     height: 200,
     borderRadius: 10,
   },

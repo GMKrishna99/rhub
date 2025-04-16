@@ -13,12 +13,8 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Carousel from './Component';
 import {ScrollView} from 'react-native-gesture-handler';
-// import {products, categories, bannerImages} from '../constants/HomeData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {changeIcon, getIcon} from 'react-native-change-icon';
 
-changeIcon('ic_launcher');
-getIcon();
 
 const {width} = Dimensions.get('window');
 
