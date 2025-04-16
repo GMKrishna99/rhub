@@ -1,117 +1,106 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-package = "com.rithikahub">
-<uses-permission android:name="android.permission.INTERNET" />
-<application
 
-      android:name=".MainApplication"
-
-      android:label="@string/app_name"
-
-      android:icon="@mipmap/ic_launcher"
-
-      android:allowBackup="false"
-
-      android:theme="@style/AppTheme"
-
-      android:supportsRtl="true">
-<!-- Remove or properly define this activity-alias -->
-<!-- <activity-alias android:name=".MainActivity"/> -->
-<activity-alias
-
-         android:name=".MainActivityic_launcher"
-
-         android:enabled="false"
-
-         android:exported="true"
-
-         android:icon="@mipmap/ic_launcher"
-
-         android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN" />
-<category android:name="android.intent.category.LAUNCHER" />
-</intent-filter>
-</activity-alias>
-<activity-alias
-
-       android:name=".MainActivityic_launcher_logo_2"
-
-       android:enabled="false"
-
-       android:exported="true"
-
-       android:icon="@mipmap/ic_launcher_logo_2"
-
-       android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN" />
-<category android:name="android.intent.category.LAUNCHER" />
-</intent-filter>
-</activity-alias>
-<activity-alias
-
-       android:name=".MainActivityic_launcher_logo_3"
-
-       android:enabled="false"
-
-       android:exported="true"
-
-       android:icon="@mipmap/ic_launcher_logo_3"
-
-       android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN" />
-<category android:name="android.intent.category.LAUNCHER" />
-</intent-filter>
-</activity-alias>
-<activity-alias
-
-       android:name=".MainActivityic_launcher_logo_4"
-
-       android:enabled="false"
-
-       android:exported="true"
-
-       android:icon="@mipmap/ic_launcher_logo_4"
-
-       android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN" />
-<category android:name="android.intent.category.LAUNCHER" />
-</intent-filter>
-</activity-alias>
-<activity-alias
-
-       android:name=".MainActivityic_launcher_logo_5"
-
-       android:enabled="false"
-
-       android:exported="true"
-
-       android:icon="@mipmap/ic_launcher_logo_5"
-
-       android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN" />
-<category android:name="android.intent.category.LAUNCHER" />
-</intent-filter>
-</activity-alias>
-<activity-alias
-
-       android:name=".MainActivityic_launcher_logo_6"
-
-       android:enabled="false"
-
-       android:exported="true"
-
-       android:icon="@mipmap/ic_launcher_logo_6"
-
-       android:targetActivity=".MainActivity">
-<intent-filter>
-<action android:name="android.intent.action.MAIN" />
-<category android:name="android.intent.category.LAUNCHER" />
-</intent-filter>
-</activity-alias>
-</application>
-</manifest>
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.rithikahub">
  
+    <uses-permission android:name="android.permission.INTERNET" />
+ 
+    <application
+        android:name=".MainApplication"
+        android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:theme="@style/AppTheme"
+        android:supportsRtl="true">
+ 
+        <!-- Main Activity (MUST BE ENABLED) -->
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize|uiMode"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="true">
+        </activity>
+ 
+        <!-- DEFAULT ICON (Enabled initially) -->
+        <activity-alias
+            android:name=".DefaultIconAlias"
+            android:enabled="true"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:targetActivity=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity-alias>
+ 
+ 
+        <!-- ALTERNATE ICON 1 -->
+<activity-alias
+            android:name=".Logo2Alias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_logo_2"
+            android:targetActivity=".MainActivity">
+<intent-filter>
+<action android:name="android.intent.action.MAIN" />
+<category android:name="android.intent.category.LAUNCHER" />
+</intent-filter>
+</activity-alias>
+ 
+        <!-- ALTERNATE ICON 2 -->
+<activity-alias
+            android:name=".Logo3Alias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_logo_3"
+            android:targetActivity=".MainActivity">
+<intent-filter>
+<action android:name="android.intent.action.MAIN" />
+<category android:name="android.intent.category.LAUNCHER" />
+</intent-filter>
+</activity-alias>
+ 
+        <!-- ALTERNATE ICON 3 -->
+<activity-alias
+            android:name=".Logo4Alias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_logo_4"
+            android:targetActivity=".MainActivity">
+<intent-filter>
+<action android:name="android.intent.action.MAIN" />
+<category android:name="android.intent.category.LAUNCHER" />
+</intent-filter>
+</activity-alias>
+ 
+        <!-- ALTERNATE ICON 4 -->
+<activity-alias
+            android:name=".Logo5Alias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_logo_5"
+            android:targetActivity=".MainActivity">
+<intent-filter>
+<action android:name="android.intent.action.MAIN" />
+<category android:name="android.intent.category.LAUNCHER" />
+</intent-filter>
+</activity-alias>
+ 
+        <!-- ALTERNATE ICON 5 -->
+<activity-alias
+            android:name=".Logo6Alias"
+            android:enabled="false"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher_logo_6"
+            android:targetActivity=".MainActivity">
+<intent-filter>
+<action android:name="android.intent.action.MAIN" />
+<category android:name="android.intent.category.LAUNCHER" />
+</intent-filter>
+</activity-alias>
+ 
+    </application>
+</manifest>

@@ -11,16 +11,16 @@ import {
   Alert,
   Modal,
   Pressable,
+  ScrollView,
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Carousel from './Component';
-import {ScrollView} from 'react-native-gesture-handler';
-// import {products, categories, bannerImages} from '../constants/HomeData';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {changeIcon, getIcon} from 'react-native-change-icon';
+// import {changeIcon, getIcon} from 'react-native-change-icon';
+import DynamicIcon from './DynamicIcon';
 
-changeIcon('ic_launcher');
-getIcon();
+// changeIcon('ic_launcher');
+// getIcon();
 
 const {width} = Dimensions.get('window');
 
@@ -244,7 +244,6 @@ const bannerImages = [
   'https://img.freepik.com/free-photo/concept-holidays-celebration-young-man-looking-surprised-as-take-out-gift-from-shopping-bag-s_1258-155541.jpg?t=st=1744022046~exp=1744025646~hmac=4d9db341531f74d4b50ddff851ca3bf230cb05143bf3fc394f4f16ab2fadd4f4&w=1380',
 ];
 
-
 const HomeScreen = ({navigation}) => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -258,7 +257,7 @@ const HomeScreen = ({navigation}) => {
       try {
         const savedWishlist = await AsyncStorage.getItem('wishlist');
         if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
-        
+
         const icon = await DynamicIcon.getCurrentIcon();
         setCurrentIcon(icon);
       } catch (error) {
@@ -287,14 +286,14 @@ const HomeScreen = ({navigation}) => {
   );
 
   const toggleWishlist = productId => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId) 
-        : [...prev, productId]
+    setWishlist(prev =>
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId],
     );
   };
 
-  const changeAppIcon = async (iconName) => {
+  const changeAppIcon = async iconName => {
     try {
       await DynamicIcon.changeIcon(iconName);
       setCurrentIcon(iconName);
@@ -308,12 +307,12 @@ const HomeScreen = ({navigation}) => {
   const availableIcons = DynamicIcon.getAvailableIcons();
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Shop</Text>
         <View style={styles.headerIcons}>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => setIconModalVisible(true)}
             style={styles.iconButton}>
             <Ionicons name="color-palette-outline" size={24} color="#fff" />
@@ -321,7 +320,7 @@ const HomeScreen = ({navigation}) => {
           <TouchableOpacity style={styles.iconButton}>
             <Ionicons name="notifications-outline" size={24} color="#fff" />
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => navigation.navigate('Wishlist', {wishlist})}
             style={styles.wishlistButton}>
             <Ionicons name="heart-outline" size={24} color="#fff" />
@@ -336,7 +335,12 @@ const HomeScreen = ({navigation}) => {
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+        <Ionicons
+          name="search"
+          size={20}
+          color="#888"
+          style={styles.searchIcon}
+        />
         <TextInput
           style={styles.searchInput}
           placeholder="Search products..."
@@ -370,18 +374,19 @@ const HomeScreen = ({navigation}) => {
           <TouchableOpacity
             style={[
               styles.categoryButton,
-              selectedCategory === item.name && styles.selectedCategory
+              selectedCategory === item.name && styles.selectedCategory,
             ]}
             onPress={() => setSelectedCategory(item.name)}>
-            <Ionicons 
-              name={item.icon} 
-              size={24} 
-              color={selectedCategory === item.name ? '#fff' : '#0A5EB0'} 
+            <Ionicons
+              name={item.icon}
+              size={24}
+              color={selectedCategory === item.name ? '#fff' : '#0A5EB0'}
             />
-            <Text style={[
-              styles.categoryText,
-              selectedCategory === item.name && styles.selectedCategoryText
-            ]}>
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === item.name && styles.selectedCategoryText,
+              ]}>
               {item.name}
             </Text>
           </TouchableOpacity>
@@ -396,30 +401,36 @@ const HomeScreen = ({navigation}) => {
         columnWrapperStyle={styles.productsRow}
         contentContainerStyle={styles.productsContainer}
         renderItem={({item}) => (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.productCard}
-            onPress={() => navigation.navigate('ProductDetails', {product: item})}>
+            onPress={() =>
+              navigation.navigate('ProductDetails', {product: item})
+            }>
             <View style={styles.productImageContainer}>
               <Image source={{uri: item.image}} style={styles.productImage} />
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.heartIcon}
                 onPress={() => toggleWishlist(item.id)}>
-                <Ionicons 
-                  name={wishlist.includes(item.id) ? "heart" : "heart-outline"} 
-                  size={20} 
-                  color={wishlist.includes(item.id) ? "#ff0000" : "#fff"} 
+                <Ionicons
+                  name={wishlist.includes(item.id) ? 'heart' : 'heart-outline'}
+                  size={20}
+                  color={wishlist.includes(item.id) ? '#ff0000' : '#fff'}
                 />
               </TouchableOpacity>
             </View>
             <View style={styles.productInfo}>
-              <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
+              <Text style={styles.productName} numberOfLines={1}>
+                {item.name}
+              </Text>
               <View style={styles.ratingContainer}>
                 <Ionicons name="star" size={14} color="#FFD700" />
                 <Text style={styles.ratingText}>{item.rating}</Text>
                 <Text style={styles.reviewsText}>({item.reviews})</Text>
               </View>
               <View style={styles.priceContainer}>
-                <Text style={styles.discountedPrice}>{item.discountedPrice}</Text>
+                <Text style={styles.discountedPrice}>
+                  {item.discountedPrice}
+                </Text>
                 <Text style={styles.originalPrice}>{item.originalPrice}</Text>
               </View>
             </View>
@@ -438,13 +449,13 @@ const HomeScreen = ({navigation}) => {
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Change App Icon</Text>
             <Text style={styles.currentIcon}>Current: {currentIcon}</Text>
-            
+
             {Object.entries(availableIcons).map(([key, value]) => (
               <Pressable
                 key={key}
                 style={[
                   styles.iconOption,
-                  currentIcon === value && styles.selectedIconOption
+                  currentIcon === value && styles.selectedIconOption,
                 ]}
                 onPress={() => changeAppIcon(value)}>
                 <Text style={styles.iconOptionText}>
@@ -452,7 +463,7 @@ const HomeScreen = ({navigation}) => {
                 </Text>
               </Pressable>
             ))}
-            
+
             <Pressable
               style={styles.cancelButton}
               onPress={() => setIconModalVisible(false)}>
@@ -461,14 +472,14 @@ const HomeScreen = ({navigation}) => {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
+   backgroundColor: '#f8f8f8',
   },
   header: {
     flexDirection: 'row',
@@ -481,7 +492,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 20,
     elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
@@ -529,7 +540,7 @@ const styles = StyleSheet.create({
     marginVertical: 15,
     elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -566,7 +577,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
@@ -596,7 +607,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 4,
   },
