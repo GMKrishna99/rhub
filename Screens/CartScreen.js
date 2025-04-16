@@ -102,6 +102,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 15,
+    flexGrow: 1,
   },
   cartItem: {
     flexDirection: 'row',

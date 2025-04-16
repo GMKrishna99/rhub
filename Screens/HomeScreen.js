@@ -289,7 +289,7 @@ const HomeScreen = ({navigation}) => {
     setWishlist(prev =>
       prev.includes(productId)
         ? prev.filter(id => id !== productId)
-        : [...prev, productId],
+        : [...prev, productId]
     );
   };
 
@@ -307,7 +307,7 @@ const HomeScreen = ({navigation}) => {
   const availableIcons = DynamicIcon.getAvailableIcons();
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Shop</Text>
@@ -350,94 +350,101 @@ const HomeScreen = ({navigation}) => {
         />
       </View>
 
-      {/* Banner Carousel */}
-      <View style={styles.carouselContainer}>
-        <Carousel
-          data={bannerImages}
-          renderItem={({item}) => (
-            <Image source={{uri: item}} style={styles.bannerImage} />
-          )}
-          sliderWidth={width}
-          itemWidth={width - 40}
-          autoplay
-          loop
-        />
-      </View>
+      {/* Main Content ScrollView */}
+      <ScrollView 
+        style={styles.mainContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Banner Carousel */}
+        <View style={styles.carouselContainer}>
+          <Carousel
+            data={bannerImages}
+            renderItem={({item}) => (
+              <Image source={{uri: item}} style={styles.bannerImage} />
+            )}
+            sliderWidth={width}
+            itemWidth={width - 40}
+            autoplay
+            loop
+          />
+        </View>
 
-      {/* Categories */}
-      <FlatList
-        horizontal
-        data={categories}
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoriesContainer}
-        renderItem={({item}) => (
-          <TouchableOpacity
-            style={[
-              styles.categoryButton,
-              selectedCategory === item.name && styles.selectedCategory,
-            ]}
-            onPress={() => setSelectedCategory(item.name)}>
-            <Ionicons
-              name={item.icon}
-              size={24}
-              color={selectedCategory === item.name ? '#fff' : '#0A5EB0'}
-            />
-            <Text
-              style={[
-                styles.categoryText,
-                selectedCategory === item.name && styles.selectedCategoryText,
-              ]}>
-              {item.name}
-            </Text>
-          </TouchableOpacity>
-        )}
-        keyExtractor={item => item.name}
-      />
-
-      {/* Products Grid */}
-      <FlatList
-        data={filteredProducts}
-        numColumns={2}
-        columnWrapperStyle={styles.productsRow}
-        contentContainerStyle={styles.productsContainer}
-        renderItem={({item}) => (
-          <TouchableOpacity
-            style={styles.productCard}
-            onPress={() =>
-              navigation.navigate('ProductDetails', {product: item})
-            }>
-            <View style={styles.productImageContainer}>
-              <Image source={{uri: item.image}} style={styles.productImage} />
+        {/* Categories */}
+        <View style={styles.categoriesWrapper}>
+          <FlatList
+            horizontal
+            data={categories}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesContainer}
+            renderItem={({item}) => (
               <TouchableOpacity
-                style={styles.heartIcon}
-                onPress={() => toggleWishlist(item.id)}>
+                style={[
+                  styles.categoryButton,
+                  selectedCategory === item.name && styles.selectedCategory,
+                ]}
+                onPress={() => setSelectedCategory(item.name)}>
                 <Ionicons
-                  name={wishlist.includes(item.id) ? 'heart' : 'heart-outline'}
-                  size={20}
-                  color={wishlist.includes(item.id) ? '#ff0000' : '#fff'}
+                  name={item.icon}
+                  size={24}
+                  color={selectedCategory === item.name ? '#fff' : '#0A5EB0'}
                 />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.productInfo}>
-              <Text style={styles.productName} numberOfLines={1}>
-                {item.name}
-              </Text>
-              <View style={styles.ratingContainer}>
-                <Ionicons name="star" size={14} color="#FFD700" />
-                <Text style={styles.ratingText}>{item.rating}</Text>
-                <Text style={styles.reviewsText}>({item.reviews})</Text>
-              </View>
-              <View style={styles.priceContainer}>
-                <Text style={styles.discountedPrice}>
-                  {item.discountedPrice}
+                <Text
+                  style={[
+                    styles.categoryText,
+                    selectedCategory === item.name && styles.selectedCategoryText,
+                  ]}>
+                  {item.name}
                 </Text>
-                <Text style={styles.originalPrice}>{item.originalPrice}</Text>
+              </TouchableOpacity>
+            )}
+            keyExtractor={item => item.name}
+          />
+        </View>
+
+        {/* Products Grid */}
+        <FlatList
+          data={filteredProducts}
+          numColumns={2}
+          scrollEnabled={false}
+          columnWrapperStyle={styles.productsRow}
+          contentContainerStyle={styles.productsContainer}
+          renderItem={({item}) => (
+            <TouchableOpacity
+              style={styles.productCard}
+              onPress={() => navigation.navigate('ProductDetails', {product: item})}>
+              <View style={styles.productImageContainer}>
+                <Image source={{uri: item.image}} style={styles.productImage} />
+                <TouchableOpacity
+                  style={styles.heartIcon}
+                  onPress={() => toggleWishlist(item.id)}>
+                  <Ionicons
+                    name={wishlist.includes(item.id) ? 'heart' : 'heart-outline'}
+                    size={20}
+                    color={wishlist.includes(item.id) ? '#ff0000' : '#fff'}
+                  />
+                </TouchableOpacity>
               </View>
-            </View>
-          </TouchableOpacity>
-        )}
-        keyExtractor={item => item.id}
-      />
+              <View style={styles.productInfo}>
+                <Text style={styles.productName} numberOfLines={1}>
+                  {item.name}
+                </Text>
+                <View style={styles.ratingContainer}>
+                  <Ionicons name="star" size={14} color="#FFD700" />
+                  <Text style={styles.ratingText}>{item.rating}</Text>
+                  <Text style={styles.reviewsText}>({item.reviews})</Text>
+                </View>
+                <View style={styles.priceContainer}>
+                  <Text style={styles.discountedPrice}>
+                    {item.discountedPrice}
+                  </Text>
+                  <Text style={styles.originalPrice}>{item.originalPrice}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          )}
+          keyExtractor={item => item.id}
+        />
+      </ScrollView>
 
       {/* Icon Changer Modal */}
       <Modal
@@ -472,14 +479,14 @@ const HomeScreen = ({navigation}) => {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-   backgroundColor: '#f8f8f8',
+    backgroundColor: '#f8f8f8',
   },
   header: {
     flexDirection: 'row',
@@ -553,15 +560,11 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 16,
   },
-  carouselContainer: {
-    height: 180,
-    marginBottom: 15,
+  mainContent: {
+    flex: 1,
   },
-  bannerImage: {
-    width: width - 40,
-    height: 180,
-    borderRadius: 15,
-    marginHorizontal: 20,
+  categoriesWrapper: {
+    marginVertical: 10,
   },
   categoriesContainer: {
     paddingHorizontal: 15,
@@ -591,6 +594,16 @@ const styles = StyleSheet.create({
   },
   selectedCategoryText: {
     color: '#fff',
+  },
+  carouselContainer: {
+    height: 180,
+    marginVertical: 15,
+  },
+  bannerImage: {
+    width: width - 40,
+    height: 180,
+    borderRadius: 15,
+    marginHorizontal: 20,
   },
   productsContainer: {
     paddingHorizontal: 15,
