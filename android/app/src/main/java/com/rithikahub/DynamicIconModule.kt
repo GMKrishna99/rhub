@@ -8,6 +8,14 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import java.net.URL
+import android.os.AsyncTask
+import android.util.Log
+import java.io.File
+import java.io.FileOutputStream
+import android.content.Context
  
 class DynamicIconModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
  
@@ -16,49 +24,10 @@ class DynamicIconModule(reactContext: ReactApplicationContext) : ReactContextBas
     }
  
     @ReactMethod
-    fun changeIcon(iconName: String, promise: Promise) {
+    fun changeIcon(iconUrl: String, promise: Promise) {
         try {
             val currentActivity = currentActivity ?: throw Exception("Activity not available")
-            val packageName = currentActivity.packageName
-            val pm = currentActivity.packageManager
- 
-            // Disable all components first
-            listOf(
-                "$packageName.MainActivity",
-                "$packageName.DefaultIconAlias",
-                "$packageName.Logo2Alias",
-                "$packageName.Logo3Alias",
-                "$packageName.Logo4Alias",
-                "$packageName.Logo5Alias",
-                "$packageName.Logo6Alias"
-            ).forEach { alias ->
-                pm.setComponentEnabledSetting(
-                    ComponentName(packageName, alias),
-                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
-                    PackageManager.DONT_KILL_APP
-                )
-            }
- 
-            // Enable selected component
-            val targetComponent = when (iconName) {
-                "default" -> "$packageName.DefaultIconAlias"
-                "logo2" -> "$packageName.Logo2Alias"
-                "logo3" -> "$packageName.Logo3Alias"
-                "logo4" -> "$packageName.Logo4Alias"
-                "logo5" -> "$packageName.Logo5Alias"
-                "logo6" -> "$packageName.Logo6Alias"
-                else -> throw IllegalArgumentException("Invalid icon name")
-            }
- 
-            pm.setComponentEnabledSetting(
-                ComponentName(packageName, targetComponent),
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
-                PackageManager.DONT_KILL_APP
-            )
- 
-            // Refresh launcher
-            refreshLauncher(currentActivity)
-            promise.resolve(true)
+            DownloadIconTask(currentActivity, promise).execute(iconUrl)
         } catch (e: Exception) {
             promise.reject("ICON_CHANGE_FAILED", e.message, e)
         }
@@ -68,40 +37,62 @@ class DynamicIconModule(reactContext: ReactApplicationContext) : ReactContextBas
     fun getCurrentIcon(promise: Promise) {
         try {
             val currentActivity = currentActivity ?: throw Exception("Activity not available")
-            val packageName = currentActivity.packageName
-            val pm = currentActivity.packageManager
- 
-            val aliases = listOf(
-                "$packageName.DefaultIconAlias" to "default",
-                "$packageName.Logo2Alias" to "logo2",
-                "$packageName.Logo3Alias" to "logo3",
-                "$packageName.Logo4Alias" to "logo4",
-                "$packageName.Logo5Alias" to "logo5",
-                "$packageName.Logo6Alias" to "logo6"
-            )
- 
-            for ((alias, iconName) in aliases) {
-                if (pm.getComponentEnabledSetting(ComponentName(packageName, alias)) == 
-                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED) {
-                    promise.resolve(iconName)
-                    return
-                }
+            val iconFile = File(currentActivity.filesDir, "current_icon.png")
+            if (iconFile.exists()) {
+                promise.resolve(iconFile.absolutePath)
+            } else {
+                promise.resolve(null)
             }
-            promise.resolve("default")
         } catch (e: Exception) {
             promise.reject("GET_ICON_FAILED", e.message, e)
         }
     }
  
-    private fun refreshLauncher(activity: Activity) {
-        try {
-            val intent = Intent(Intent.ACTION_MAIN).apply {
-                addCategory(Intent.CATEGORY_HOME)
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    private inner class DownloadIconTask(
+        private val context: Context,
+        private val promise: Promise
+    ) : AsyncTask<String, Void, Boolean>() {
+ 
+        override fun doInBackground(vararg params: String): Boolean {
+            try {
+                val iconUrl = params[0]
+                val url = URL(iconUrl)
+                val bitmap = BitmapFactory.decodeStream(url.openStream())
+                
+                val iconFile = File(context.filesDir, "current_icon.png")
+                FileOutputStream(iconFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                }
+                
+                // Update the app icon
+                val packageManager = context.packageManager
+                val componentName = ComponentName(context, context.javaClass)
+                packageManager.setComponentEnabledSetting(
+                    componentName,
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+                    PackageManager.DONT_KILL_APP
+                )
+                
+                // Create a new activity-alias with the downloaded icon
+                val intent = Intent(Intent.ACTION_MAIN).apply {
+                    addCategory(Intent.CATEGORY_HOME)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+                
+                return true
+            } catch (e: Exception) {
+                Log.e("DynamicIcon", "Error downloading icon", e)
+                return false
             }
-            activity.startActivity(intent)
-        } catch (e: Exception) {
-            // Ignore if launcher refresh fails
+        }
+ 
+        override fun onPostExecute(result: Boolean) {
+            if (result) {
+                promise.resolve(true)
+            } else {
+                promise.reject("ICON_CHANGE_FAILED", "Failed to download or set icon")
+            }
         }
     }
 }

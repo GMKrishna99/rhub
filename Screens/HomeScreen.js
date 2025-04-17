@@ -16,11 +16,7 @@ import {
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Carousel from './Component';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import {changeIcon, getIcon} from 'react-native-change-icon';
-import DynamicIcon from './DynamicIcon';
-
-// changeIcon('ic_launcher');
-// getIcon();
+import IconService from './IconService';
 
 const {width} = Dimensions.get('window');
 
@@ -248,7 +244,7 @@ const HomeScreen = ({navigation}) => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [wishlist, setWishlist] = useState([]);
-  const [currentIcon, setCurrentIcon] = useState('default');
+  const [currentIconUrl, setCurrentIconUrl] = useState(null);
   const [iconModalVisible, setIconModalVisible] = useState(false);
 
   // Load wishlist and current icon
@@ -258,8 +254,8 @@ const HomeScreen = ({navigation}) => {
         const savedWishlist = await AsyncStorage.getItem('wishlist');
         if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
 
-        const icon = await DynamicIcon.getCurrentIcon();
-        setCurrentIcon(icon);
+        const iconUrl = await IconService.getIconUrl();
+        setCurrentIconUrl(iconUrl);
       } catch (error) {
         console.error('Failed to load data', error);
       }
@@ -293,18 +289,29 @@ const HomeScreen = ({navigation}) => {
     );
   };
 
-  const changeAppIcon = async iconName => {
+  const changeAppIcon = async (iconUrl) => {
     try {
-      await DynamicIcon.changeIcon(iconName);
-      setCurrentIcon(iconName);
-      setIconModalVisible(false);
-      Alert.alert('Success', `App icon changed to ${iconName}`);
+      const success = await IconService.setIconUrl(iconUrl);
+      if (success) {
+        setCurrentIconUrl(iconUrl);
+        setIconModalVisible(false);
+        Alert.alert('Success', 'App icon URL updated successfully');
+      } else {
+        Alert.alert('Error', 'Failed to update app icon URL');
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to change app icon');
+      Alert.alert('Error', 'Failed to update app icon URL');
     }
   };
 
-  const availableIcons = DynamicIcon.getAvailableIcons();
+  const availableIcons = {
+    DEFAULT: 'https://example.com/icons/default.png',
+    LOGO2: 'https://example.com/icons/logo2.png',
+    LOGO3: 'https://example.com/icons/logo3.png',
+    LOGO4: 'https://example.com/icons/logo4.png',
+    LOGO5: 'https://example.com/icons/logo5.png',
+    LOGO6: 'https://example.com/icons/logo6.png',
+  };
 
   return (
     <View style={styles.container}>
@@ -455,16 +462,23 @@ const HomeScreen = ({navigation}) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
             <Text style={styles.modalTitle}>Change App Icon</Text>
-            <Text style={styles.currentIcon}>Current: {currentIcon}</Text>
+            <Text style={styles.currentIcon}>
+              Current: {currentIconUrl ? 'Custom Icon' : 'Default Icon'}
+            </Text>
 
             {Object.entries(availableIcons).map(([key, value]) => (
               <Pressable
                 key={key}
                 style={[
                   styles.iconOption,
-                  currentIcon === value && styles.selectedIconOption,
+                  currentIconUrl === value && styles.selectedIconOption,
                 ]}
                 onPress={() => changeAppIcon(value)}>
+                <Image
+                  source={{uri: value}}
+                  style={styles.iconPreview}
+                  resizeMode="contain"
+                />
                 <Text style={styles.iconOptionText}>
                   {key.replace(/([A-Z])/g, ' $1').trim()}
                 </Text>
@@ -732,6 +746,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  iconPreview: {
+    width: 40,
+    height: 40,
+    marginBottom: 8,
   },
 });
 
